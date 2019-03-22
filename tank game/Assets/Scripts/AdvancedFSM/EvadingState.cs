@@ -36,7 +36,6 @@ public class EvadingState : FSMState
 
         if (!Physics.Raycast(forwardRay, out hit, 700f))
         {
-            FindNextPoint();
             Debug.Log("Switch to Patrol state");
             npc.GetComponent<NPCTankController>().SetTransition(Transition.LostPlayer);
         }

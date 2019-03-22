@@ -10,9 +10,6 @@ public class ChaseState : FSMState
 
         curRotSpeed = 1.0f;
         curSpeed = 100.0f;
-
-        //find next Waypoint position
-        FindNextPoint();
     }
 
     public override void Reason(Transform player, Transform npc)

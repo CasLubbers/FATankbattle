@@ -1,5 +1,8 @@
 using UnityEngine;
 using System.Collections;
+using System;
+using Random = UnityEngine.Random;
+using System.Collections.Generic;
 
 public class NPCTankController : AdvancedFSM 
 {
@@ -15,11 +18,9 @@ public class NPCTankController : AdvancedFSM
         shootRate = 2.0f;
 
         //Get the target enemy(Player)
-        GameObject objPlayer = GameObject.FindGameObjectWithTag("Player");
-        playerTransform = objPlayer.transform;
-
-        if (!playerTransform)
-            print("Player doesn't exist.. Please add one with Tag named 'Player'");
+        List<GameObject> enemies = getEnemies();
+        Debug.Log(enemies);
+        playerTransform = GetClosestEnemy(enemies);
 
         //Get the turret of the tank
         turret = gameObject.transform.GetChild(0).transform;
@@ -27,6 +28,29 @@ public class NPCTankController : AdvancedFSM
 
         //Start Doing the Finite State Machine
         ConstructFSM();
+    }
+
+    private Transform GetClosestEnemy(List<GameObject> enemies)
+    {
+        Transform closestEnemy = enemies[0].transform;
+        for (int i = 1; i < enemies.Capacity; i++)
+        {
+            if (Vector3.Distance(enemies[i].transform.position, transform.position) < Vector3.Distance(closestEnemy.position, transform.position))
+                closestEnemy = enemies[i].transform;
+        }
+        return closestEnemy;
+    }
+
+    private List<GameObject> getEnemies()
+    {
+        GameObject[] tanks = GameObject.FindGameObjectsWithTag("Tank");
+        List<GameObject> enemies = new List<GameObject>();
+        for (int i = 0; i < tanks.Length; i++)
+        {
+            if (tanks[i].transform.Find("Team1") == null)
+                enemies.Add(tanks[i]);
+        }
+        return enemies;
     }
 
     //Update each frame
