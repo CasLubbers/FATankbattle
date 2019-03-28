@@ -48,9 +48,9 @@ public class SimpleFSM : FSM
 
         //Get the target enemy(Player)
         GameObject objPlayer = GameObject.FindGameObjectWithTag("Player");
-        playerTransform = objPlayer.transform;
+        enemyTransform = objPlayer.transform;
 
-        if(!playerTransform)
+        if(!enemyTransform)
             print("Player doesn't exist.. Please add one with Tag named 'Player'");
 
         //Get the turret of the tank
@@ -90,7 +90,7 @@ public class SimpleFSM : FSM
         }
         //Check the distance with player tank
         //When the distance is near, transition to chase state
-        else if (Vector3.Distance(transform.position, playerTransform.position) <= 300.0f)
+        else if (Vector3.Distance(transform.position, enemyTransform.position) <= 300.0f)
         {
             print("Switch to Chase Position");
             curState = FSMState.Chase;
@@ -110,11 +110,11 @@ public class SimpleFSM : FSM
     protected void UpdateChaseState()
     {
         //Set the target position as the player position
-        destPos = playerTransform.position;
+        destPos = enemyTransform.position;
 
         //Check the distance with player tank
         //When the distance is near, transition to attack state
-        float dist = Vector3.Distance(transform.position, playerTransform.position);
+        float dist = Vector3.Distance(transform.position, enemyTransform.position);
         if (dist <= 200.0f)
         {
             curState = FSMState.Attack;
@@ -135,10 +135,10 @@ public class SimpleFSM : FSM
     protected void UpdateAttackState()
     {
         //Set the target position as the player position
-        destPos = playerTransform.position;
+        destPos = enemyTransform.position;
 
         //Check the distance with the player tank
-        float dist = Vector3.Distance(transform.position, playerTransform.position);
+        float dist = Vector3.Distance(transform.position, enemyTransform.position);
         if (dist >= 200.0f && dist < 300.0f)
         {
             //Rotate to the target point

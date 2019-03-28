@@ -8,6 +8,7 @@ public class NPCTankController : AdvancedFSM
 {
     public GameObject Bullet;
     public int health;
+    public UnityEngine.AI.NavMeshAgent navAgent;
 
     //Initialize the Finite state machine for the NPC tank
     protected override void Initialize()
@@ -20,7 +21,7 @@ public class NPCTankController : AdvancedFSM
         //Get the target enemy(Player)
         List<GameObject> enemies = getEnemies();
         Debug.Log(enemies);
-        playerTransform = GetClosestEnemy(enemies);
+        enemyTransform = GetClosestEnemy(enemies);
 
         //Get the turret of the tank
         turret = gameObject.transform.GetChild(0).transform;
@@ -32,6 +33,11 @@ public class NPCTankController : AdvancedFSM
 
     private Transform GetClosestEnemy(List<GameObject> enemies)
     {
+        if(enemies.Capacity == 0)
+        {
+            Debug.Log("ERROR: No Enemies found");
+            return transform;
+        }
         Transform closestEnemy = enemies[0].transform;
         for (int i = 1; i < enemies.Capacity; i++)
         {
@@ -62,8 +68,8 @@ public class NPCTankController : AdvancedFSM
 
     protected override void FSMFixedUpdate()
     {
-        CurrentState.Reason(playerTransform, transform);
-        CurrentState.Act(playerTransform, transform);
+        CurrentState.Reason(enemyTransform, transform);
+        CurrentState.Act(enemyTransform, transform);
     }
 
     public void SetTransition(Transition t) 
