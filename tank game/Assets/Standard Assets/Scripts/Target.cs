@@ -16,7 +16,7 @@ public class Target : MonoBehaviour
     {
 	    foreach(UnityEngine.AI.NavMeshAgent agent in navAgents) 
         {
-		    agent.destination = targetPosition;
+		    //agent.destination = targetPosition;
 	    }
     }
 
