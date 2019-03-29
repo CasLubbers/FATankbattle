@@ -9,6 +9,7 @@ public class NPCTankController : AdvancedFSM
     public GameObject Bullet;
     public int health;
     public UnityEngine.AI.NavMeshAgent navAgent;
+    public Transform[] points;
 
     //Initialize the Finite state machine for the NPC tank
     protected override void Initialize()
@@ -29,6 +30,7 @@ public class NPCTankController : AdvancedFSM
 
         //Start Doing the Finite State Machine
         ConstructFSM();
+        navAgent.updateRotation = false;
     }
 
     private Transform GetClosestEnemy(List<GameObject> enemies)
