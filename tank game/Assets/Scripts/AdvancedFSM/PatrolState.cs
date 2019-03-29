@@ -18,14 +18,15 @@ public class PatrolState : FSMState
         curSpeed = 100.0f;
     }
 
-    public float Kc = 45;
-    public float Ks = 90;
-    public float Ka = 90;
-    public float Kw = 2000;
+    public float Kc = 0;
+    public float Ks = 0;
+    public float Ka = 0;
+    public float Kw = 200;
     public float WanderJitter = 50;
     public float WanderDistance = 50;
     public float WanderRadius = 3;
     public float bound = 70;
+    public float distanceOtherTanks = 300;
 
     private static int teamPointIndex = 0;
     private readonly float destMargin = 30.0f;
@@ -33,62 +34,38 @@ public class PatrolState : FSMState
     Vector3 wanderTarget;
     GameObject debugWanderCube;
 
-    Vector3 cohesion(Transform player)
+    void cohesion(Transform player)
     {
         Vector3 r = new Vector3();
-        int countAgents = 0;
+        bool nearbyOtherTank = false;
 
         var teamTanks = getTeamTanks("Team1");
 
-        if (teamTanks.Length == 0) return r;
+        if (teamTanks.Length == 0) return;
 
-        foreach (var agent in teamTanks)
-        {
-            r += agent.transform.position;
-            countAgents++;
-        }
-        if (countAgents == 0) return r;
-
-        r /= countAgents;
-
-        // r /= neighs.Count;
-
-        r = r - player.transform.position;
-
-        return r.normalized;
-    }
-
-    Vector3 separation(Transform player)
-    {
-        Vector3 r = new Vector3();
-        int countAgents = 0;
-
-        GameObject[] teamTanks = getTeamTanks("Team1");
-
-        if (teamTanks.Length == 0)
-            return r;
-
-        foreach (var agent in teamTanks)
-        {
-            countAgents++;
-            Vector3 towardsMe = player.transform.position - agent.transform.position;
-            if (towardsMe.magnitude > 0)
-            {
-                r += towardsMe.normalized / towardsMe.magnitude;
+        foreach (var agent in teamTanks) {
+            if (agent.name != player.name) {
+                r += agent.transform.position;
+                Debug.Log("Aantal tanks: " + teamTanks.Length);
+                Debug.Log("Distance: " + Vector3.Distance(player.position, agent.transform.position));
+                if (Vector3.Distance(player.position, agent.transform.position) < distanceOtherTanks) {
+                    nearbyOtherTank = true;
+                    continue;
+                }
             }
         }
 
-        r /= countAgents;
-
-        return r.normalized;
+        if (!nearbyOtherTank) {
+            Debug.Log(player.name + " IS FAR AWAY");
+            player.GetComponent<NPCTankController>().navAgent.SetDestination((r / (teamTanks.Length - 1)).normalized);
+            //((r / teamTanks.Length) - player.transform.position).normalized;
+        }
     }
 
-    private GameObject[] getTeamTanks(String team)
-    {
+    private GameObject[] getTeamTanks(String team) {
         GameObject[] teamTanks = GameObject.FindGameObjectsWithTag("Team1");
 
-        for (int i = 0; i < teamTanks.Length; i++)
-        {
+        for (int i = 0; i < teamTanks.Length; i++) {
             teamTanks[i] = teamTanks[i].transform.parent.gameObject;
         }
         return teamTanks;
@@ -114,11 +91,6 @@ public class PatrolState : FSMState
         return r.normalized;
     }
 
-    virtual protected Vector3 combine(Transform player)
-    {
-        return /*Kc * cohesion(player) + Ks * separation(player) + Ka * alignment() +*/ Kw * wander(player);
-    }
-
     void wrapAround(ref Vector3 v, float min, float max)
     {
         v.x = wrapAroundFloat(v.x, min, max);
@@ -133,23 +105,20 @@ public class PatrolState : FSMState
         return value;
     }
 
-    protected Vector3 wander(Transform player)
+    protected void wander(Transform player)
     {
-        float jitter = WanderJitter * Time.deltaTime;
+        NPCTankController tankController = player.GetComponent<NPCTankController>();
+        NavMeshAgent agent = tankController.navAgent;
 
-        wanderTarget = new Vector3(RandomBinomial() * jitter, 0, RandomBinomial() * jitter); // +=
+        if (points == null)
+            points = tankController.points;
 
-        wanderTarget = wanderTarget.normalized;
+        if (Vector3.Distance(player.position, agent.destination) <= destMargin) {
+            GotoNextPoint(agent);
+        }
+        agent.SetDestination(points[teamPointIndex].position);
 
-        wanderTarget *= WanderRadius;
-
-        Vector3 targetInLocalSpace = wanderTarget + new Vector3(0, 0, WanderDistance);
-
-        Vector3 targetInWorldSpace = player.transform.TransformPoint(targetInLocalSpace);
-
-        targetInWorldSpace -= player.transform.position;
-
-        return targetInWorldSpace.normalized;
+        player.rotation = Quaternion.LookRotation(agent.velocity.normalized);
     }
 
     float RandomBinomial()
@@ -184,18 +153,9 @@ public class PatrolState : FSMState
         }
     }
 
-    public override void Act(Transform enemy, Transform player)
-    {
-        NPCTankController tankController = player.GetComponent<NPCTankController>();
-
-        if (points == null)
-            points = tankController.points;
-
-        if (Vector3.Distance(player.transform.position, tankController.navAgent.destination) <= destMargin)
-            GotoNextPoint(tankController.navAgent);
-
-        tankController.navAgent.SetDestination(points[teamPointIndex].position);
-        player.transform.rotation = Quaternion.LookRotation(tankController.navAgent.velocity.normalized);
+    public override void Act(Transform enemy, Transform player) {
+        wander(player);
+        cohesion(player);
     }
 
     void GotoNextPoint(NavMeshAgent agent) {
