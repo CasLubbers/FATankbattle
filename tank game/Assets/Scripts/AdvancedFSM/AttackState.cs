@@ -7,7 +7,7 @@ public class AttackState : FSMState
     { 
         waypoints = wp;
         stateID = FSMStateID.Attacking;
-        curRotSpeed = 1.0f;
+        curRotSpeed = 2.0f;
         curSpeed = 100.0f;
     }
 

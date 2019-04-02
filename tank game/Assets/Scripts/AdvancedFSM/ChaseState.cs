@@ -8,7 +8,7 @@ public class ChaseState : FSMState
         waypoints = wp;
         stateID = FSMStateID.Chasing;
 
-        curRotSpeed = 1.0f;
+        curRotSpeed = 2.0f;
         curSpeed = 100.0f;
     }
 

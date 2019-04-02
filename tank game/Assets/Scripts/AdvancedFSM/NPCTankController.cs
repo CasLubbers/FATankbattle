@@ -31,6 +31,7 @@ public class NPCTankController : AdvancedFSM
         //Start Doing the Finite State Machine
         ConstructFSM();
         navAgent.updateRotation = false;
+        navAgent.angularSpeed = 2;
     }
 
     private Transform GetClosestEnemy(List<GameObject> enemies)

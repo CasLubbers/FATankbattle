@@ -16,6 +16,8 @@ public class PatrolState : FSMState
 
         curRotSpeed = 2.0f;
         curSpeed = 100.0f;
+
+        teamTanks = getTeamTanks();
     }
 
     public float Kc = 0;
@@ -26,43 +28,44 @@ public class PatrolState : FSMState
     public float WanderDistance = 50;
     public float WanderRadius = 3;
     public float bound = 70;
-    public float distanceOtherTanks = 300;
+    public float maxDistanceCohesion = 169.420f;
 
-    private static int teamPointIndex = 0;
-    private readonly float destMargin = 30.0f;
+    static int teamPointIndex = 0;
+    readonly float destMargin = 30.0f;
+    GameObject[] teamTanks;
 
     Vector3 wanderTarget;
     GameObject debugWanderCube;
 
+    bool wasFarAway;
+
     void cohesion(Transform player)
     {
-        Vector3 r = new Vector3();
-        bool nearbyOtherTank = false;
-
-        var teamTanks = getTeamTanks("Team1");
-
         if (teamTanks.Length == 0) return;
 
-        foreach (var agent in teamTanks) {
-            if (agent.name != player.name) {
-                r += agent.transform.position;
-                Debug.Log("Aantal tanks: " + teamTanks.Length);
-                Debug.Log("Distance: " + Vector3.Distance(player.position, agent.transform.position));
-                if (Vector3.Distance(player.position, agent.transform.position) < distanceOtherTanks) {
-                    nearbyOtherTank = true;
-                    continue;
-                }
-            }
-        }
+        Vector3 center = GetCenter(teamTanks);
 
-        if (!nearbyOtherTank) {
-            Debug.Log(player.name + " IS FAR AWAY");
-            player.GetComponent<NPCTankController>().navAgent.SetDestination((r / (teamTanks.Length - 1)).normalized);
-            //((r / teamTanks.Length) - player.transform.position).normalized;
+        if (Vector3.Distance(player.position, center) < maxDistanceCohesion) {
+            if (wasFarAway) {
+                player.GetComponent<NavMeshAgent>().destination = points[teamPointIndex].position;
+                wasFarAway = false;
+            }
+            return;
         }
+        
+        center = GetCenter(getTeamTanks(player.gameObject));
+        UpdateDestination((center + player.position) / 2, teamTanks);
+        wasFarAway = true;
     }
 
-    private GameObject[] getTeamTanks(String team) {
+    Vector3 GetCenter(GameObject[] tanks) {
+        Vector3 total = new Vector3();
+        foreach (var teamTank in tanks)
+            total += teamTank.transform.position;
+        return total / tanks.Length;
+    }
+
+    private GameObject[] getTeamTanks() {
         GameObject[] teamTanks = GameObject.FindGameObjectsWithTag("Team1");
 
         for (int i = 0; i < teamTanks.Length; i++) {
@@ -71,12 +74,18 @@ public class PatrolState : FSMState
         return teamTanks;
     }
 
+    private GameObject[] getTeamTanks(GameObject exclude) {
+        List<GameObject> teamTanks = new List<GameObject>(getTeamTanks());
+        teamTanks.Remove(exclude);
+        return teamTanks.ToArray();
+    }
+
     Vector3 alignment()
     {
         Vector3 r = new Vector3();
         int countAgents = 0;
 
-        var teamTanks = getTeamTanks("Team1");
+        var teamTanks = getTeamTanks();
 
         if (teamTanks.Length == 0) return r;
 
@@ -114,11 +123,11 @@ public class PatrolState : FSMState
             points = tankController.points;
 
         if (Vector3.Distance(player.position, agent.destination) <= destMargin) {
-            GotoNextPoint(agent);
+            GotoNextPoint();
         }
-        agent.SetDestination(points[teamPointIndex].position);
 
         player.rotation = Quaternion.LookRotation(agent.velocity.normalized);
+        //player.rotation = Quaternion.Slerp(player.rotation, Quaternion.LookRotation(agent.velocity.normalized), curRotSpeed * Time.deltaTime);
     }
 
     float RandomBinomial()
@@ -132,23 +141,24 @@ public class PatrolState : FSMState
         {
             //Check the distance with player tank
             //When the distance is near, transition to chase state
-            if (Vector3.Distance(enemy.position, player.position) <= 300.0f)
+            if (Vector3.Distance(enemy.position, player.position) <= 500.0f)
             {
                 Debug.Log("Switch to Chase State");
-                enemy.GetComponent<NPCTankController>().SetTransition(Transition.SawPlayer);
+                player.GetComponent<NPCTankController>().SetTransition(Transition.SawPlayer);
             }
-            Vector3 pos = enemy.position;
+            Vector3 pos = player.position;
             pos.y += 5f;
 
-            Ray collisionRay = new Ray(pos, enemy.forward);
+            Ray collisionRay = new Ray(pos, player.forward);
+            //Debug.DrawRay(pos, player.forward * 100, Color.red);
 
             // Debug.DrawRay(collisionRay.origin, collisionRay.direction * 200f, Color.blue);
 
             RaycastHit hit;
-            if (Physics.Raycast(collisionRay, out hit, 200f))
-            {
+            if (Physics.Raycast(collisionRay, out hit, 100) && hit.transform.gameObject.tag == "Tank") {
+                //if (Physics.SphereCast(pos, player.GetComponent<Renderer>().bounds.size.y / 2, player.forward, out hit, 100) && hit.transform.gameObject.tag == "Tank") {
                 Debug.Log("Switch to Evading State");
-                enemy.GetComponent<NPCTankController>().SetTransition(Transition.Colliding);
+                player.GetComponent<NPCTankController>().SetTransition(Transition.Colliding);
             }
         }
     }
@@ -158,11 +168,18 @@ public class PatrolState : FSMState
         cohesion(player);
     }
 
-    void GotoNextPoint(NavMeshAgent agent) {
+    void GotoNextPoint() {
+        GameObject[] teamTanks = getTeamTanks();
+        if (teamTanks.Length == 0) return;
 
-        if (points.Length == 0)
-            return;
-        agent.destination = points[teamPointIndex].position;
         teamPointIndex = Random.Range(0, points.Length);
+        
+        foreach (var teamTank in teamTanks)
+            teamTank.GetComponent<NavMeshAgent>().destination = points[teamPointIndex].position;
+    }
+
+    void UpdateDestination(Vector3 point, GameObject[] tanks) {
+        foreach (var tank in tanks)
+            tank.GetComponent<NavMeshAgent>().destination = point;
     }
 }
