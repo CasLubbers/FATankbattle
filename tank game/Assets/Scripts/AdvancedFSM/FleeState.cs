@@ -12,40 +12,40 @@ public class FleeState : FSMState
         curSpeed = 100.0f;
     }
 
-    public override void Reason(Transform player, Transform npc)
+    public override void Reason(Transform enemy, Transform player)
     {
         //When the distance with player tank is far, transition to patrol state
-        float dist = Vector3.Distance(npc.position, player.position);
+        float dist = Vector3.Distance(player.position, enemy.position);
         if (dist >= 500.0f)
         {
             Debug.Log("Switch to Patrol State");
-            npc.GetComponent<NPCTankController>().SetTransition(Transition.LostPlayer);
+            player.GetComponent<NPCTankController>().SetTransition(Transition.LostPlayer);
         }
     }
 
-    public override void Act(Transform player, Transform npc)
+    public override void Act(Transform enemy, Transform player)
     {
-        Quaternion fleeRotation = Quaternion.LookRotation(player.position);
+        Quaternion fleeRotation = Quaternion.LookRotation(enemy.position);
         var targetRotation = Quaternion.Inverse(fleeRotation);
-        npc.rotation = Quaternion.Slerp(npc.rotation, targetRotation, Time.deltaTime * curRotSpeed);
+        player.rotation = Quaternion.Slerp(player.rotation, targetRotation, Time.deltaTime * curRotSpeed);
         Debug.Log(targetRotation.y);
-        Debug.Log(npc.rotation.y);
+        Debug.Log(player.rotation.y);
        
-        npc.Translate(Vector3.forward * Time.deltaTime * curSpeed);
+        player.Translate(Vector3.forward * Time.deltaTime * curSpeed);
 
         // Debug.DrawRay(collisionRay.origin, collisionRay.direction * 200f, Color.blue);
-        Vector3 pos = npc.position;
-        pos.y += 5f;
+        //Vector3 pos = player.position;
+        //pos.y += 5f;
 
-        Ray collisionRay = new Ray(pos, npc.forward);
+        //Ray collisionRay = new Ray(pos, player.forward);
 
         // Debug.DrawRay(collisionRay.origin, collisionRay.direction * 200f, Color.blue);
 
-        RaycastHit hit;
-        if (Physics.Raycast(collisionRay, out hit, 200f))
-        {
-            Debug.Log("Switch to Evading State");
-            npc.GetComponent<NPCTankController>().SetTransition(Transition.Colliding);
-        }
+        //RaycastHit hit;
+        //if (Physics.Raycast(collisionRay, out hit, 200f))
+        //{
+        //    Debug.Log("Switch to Evading State");
+        //    player.GetComponent<NPCTankController>().SetTransition(Transition.Colliding);
+        //}
     }
 }

@@ -29,6 +29,7 @@ public class PatrolState : FSMState
     public float WanderRadius = 3;
     public float bound = 70;
     public float maxDistanceCohesion = 169.420f;
+    public float enemyVisability = 500f;
 
     static int teamPointIndex = 0;
     readonly float destMargin = 30.0f;
@@ -137,14 +138,21 @@ public class PatrolState : FSMState
 
     public override void Reason(Transform enemy, Transform player)
     {
+        List<GameObject> enemies = player.GetComponent<NPCTankController>().getEnemies();
+        enemy = player.GetComponent<NPCTankController>().GetClosestEnemy(enemies);
+        
         if (player != enemy)
         {
+            //Debug.Log(enemy.name + " --- " + player.name);
+
             //Check the distance with player tank
             //When the distance is near, transition to chase state
-            if (Vector3.Distance(enemy.position, player.position) <= 500.0f)
+            //if (Vector3.Distance(enemy.position, player.position) <= 500.0f)
+            if (Vector3.Distance(enemy.position, player.position) < enemyVisability)
             {
                 Debug.Log("Switch to Chase State");
                 player.GetComponent<NPCTankController>().SetTransition(Transition.SawPlayer);
+                return;
             }
             Vector3 pos = player.position;
             pos.y += 5f;
@@ -152,9 +160,10 @@ public class PatrolState : FSMState
             Ray collisionRay = new Ray(pos, player.forward);
             //Debug.DrawRay(pos, player.forward * 100, Color.red);
 
-            // Debug.DrawRay(collisionRay.origin, collisionRay.direction * 200f, Color.blue);
+            //Debug.DrawRay(collisionRay.origin, collisionRay.direction * 100f, Color.green);
 
             RaycastHit hit;
+
             if (Physics.Raycast(collisionRay, out hit, 100) && hit.transform.gameObject.tag == "Tank") {
                 //if (Physics.SphereCast(pos, player.GetComponent<Renderer>().bounds.size.y / 2, player.forward, out hit, 100) && hit.transform.gameObject.tag == "Tank") {
                 Debug.Log("Switch to Evading State");

@@ -41,6 +41,7 @@ public class EvadingState : FSMState
             player.GetComponent<NavMeshAgent>().isStopped = false;
             Debug.Log("Switch to Patrol state");
             player.GetComponent<NPCTankController>().SetTransition(Transition.LostPlayer);
+            return;
         }
     }
 }

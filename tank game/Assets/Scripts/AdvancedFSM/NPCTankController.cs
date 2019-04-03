@@ -10,6 +10,7 @@ public class NPCTankController : AdvancedFSM
     public int health;
     public UnityEngine.AI.NavMeshAgent navAgent;
     public Transform[] points;
+    
 
     //Initialize the Finite state machine for the NPC tank
     protected override void Initialize()
@@ -34,7 +35,7 @@ public class NPCTankController : AdvancedFSM
         navAgent.angularSpeed = 2;
     }
 
-    private Transform GetClosestEnemy(List<GameObject> enemies)
+    public Transform GetClosestEnemy(List<GameObject> enemies)
     {
         if(enemies.Capacity == 0)
         {
@@ -46,11 +47,13 @@ public class NPCTankController : AdvancedFSM
         {
             if (Vector3.Distance(enemies[i].transform.position, transform.position) < Vector3.Distance(closestEnemy.position, transform.position))
                 closestEnemy = enemies[i].transform;
+           
         }
+
         return closestEnemy;
     }
 
-    private List<GameObject> getEnemies()
+    public List<GameObject> getEnemies()
     {
         GameObject[] tanks = GameObject.FindGameObjectsWithTag("Tank");
         List<GameObject> enemies = new List<GameObject>();
@@ -138,7 +141,7 @@ public class NPCTankController : AdvancedFSM
         if (collision.gameObject.tag == "Bullet")
         {
             health -= 25;
-
+            Debug.Log("Health:" + health);
             if (health <= 0)
             {
                 Debug.Log("Switch to Dead State");
