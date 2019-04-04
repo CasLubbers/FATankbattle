@@ -21,8 +21,9 @@ public class ChaseState : FSMState
         //Check the distance with player tank
         //When the distance is near, transition to attack state
         float dist = Vector3.Distance(enemy.position, destPos);
-        Debug.Log("dist:" + dist);
-     
+        //Debug.Log("dist:" + dist);
+
+        Debug.Log("dist chasestate:" + dist);
         if (dist <= 200.0f)
         {
             //player.GetComponent<NavMeshAgent>().destination = player.position;
@@ -30,7 +31,6 @@ public class ChaseState : FSMState
             player.GetComponent<NPCTankController>().SetTransition(Transition.ReachPlayer);
             return;
         }
-        
         //Go back to patrol is it become too far
         else if (dist >= 300.0f)
         {
@@ -44,7 +44,7 @@ public class ChaseState : FSMState
     {
 
         UpdateDestination(enemy.transform.position, getTeamTanks());
-        
+        player.rotation = Quaternion.LookRotation(player.GetComponent<NavMeshAgent>().velocity.normalized);
 
         //Rotate to the target point
         //destPos = player.position;
@@ -63,13 +63,7 @@ public class ChaseState : FSMState
 
     private GameObject[] getTeamTanks()
     {
-        GameObject[] teamTanks = GameObject.FindGameObjectsWithTag("Team1");
-
-        for (int i = 0; i < teamTanks.Length; i++)
-        {
-            teamTanks[i] = teamTanks[i].transform.parent.gameObject;
-        }
-        return teamTanks;
+        return GameObject.FindGameObjectsWithTag("Team1");
     }
 
 }

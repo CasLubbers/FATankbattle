@@ -4,8 +4,10 @@ using UnityEngine.AI;
 
 public class AttackState : FSMState
 {
+    private NavMeshAgent agent;
     public AttackState(Transform[] wp) 
-    { 
+    {
+        
         waypoints = wp;
         stateID = FSMStateID.Attacking;
         curRotSpeed = 2.0f;
@@ -14,11 +16,12 @@ public class AttackState : FSMState
 
     public override void Reason(Transform enemy, Transform player)
     {
+        agent = player.GetComponent<NavMeshAgent>();
         //Check the distance with the player tank
         float dist = Vector3.Distance(player.position, enemy.position);
         if (dist >= 200.0f && dist < 300.0f)
         {
-            player.GetComponent<NavMeshAgent>().isStopped = false;
+            agent.enabled = true;
             Debug.Log("Switch to Chase State");
             player.GetComponent<NPCTankController>().SetTransition(Transition.SawPlayer);
             return;
@@ -26,36 +29,38 @@ public class AttackState : FSMState
         //Transition to patrol is the tank become too far
         else if (dist >= 300.0f)
         {
-            player.GetComponent<NavMeshAgent>().isStopped = false;
+            agent.enabled = true;
             Debug.Log("Switch to Patrol State");
             player.GetComponent<NPCTankController>().SetTransition(Transition.LostPlayer);
             return;
         }
-        //Transition to flee when the health is below 50
-        //if (player.GetComponent<NPCTankController>().health <= 50)
-        //{
-        //    Debug.Log("Switch to Flee state");
-        //    player.GetComponent<NPCTankController>().SetTransition(Transition.LowHealth);
-        //    return;
-        //}
     }
 
     public override void Act(Transform enemy, Transform player)
     {
-        //Set the target position as the player position
-        //destPos = enemy.position;
+        agent = player.GetComponent<NavMeshAgent>();
+        //Stop the tank from driving
+        if (agent.enabled)
+            agent.enabled = false;
 
-        //Always Turn the turret towards the player
-        //Transform turret = player.GetComponent<NPCTankController>().turret;
-        //Quaternion turretRotation = Quaternion.LookRotation(destPos - turret.position);
-        //turret.rotation = Quaternion.Slerp(turret.rotation, turretRotation, Time.deltaTime * curRotSpeed);
-        float dist = Vector3.Distance(player.position, enemy.position);
-        if(dist <= 150)
+        //Always Turn the turret towards the enemy
+        Transform turret = player.GetComponent<NPCTankController>().turret;
+        Quaternion turretRotation = Quaternion.LookRotation(enemy.position - turret.position);
+        turret.rotation = Quaternion.Slerp(turret.rotation, turretRotation, Time.deltaTime * curRotSpeed);
+
+
+        Vector3 pos = turret.Find("SpawnPoint").position;
+
+        Ray forwardRay = new Ray(pos, turret.Find("SpawnPoint").forward);
+        RaycastHit hit;
+
+        Debug.DrawRay(pos, turret.Find("SpawnPoint").forward * 200, Color.red);
+
+
+        if (!Physics.Raycast(forwardRay, out hit, 200) || (Physics.Raycast(forwardRay, out hit, 200) && hit.transform.gameObject.tag != "Team1" && hit.transform.gameObject.tag != "Untagged"))
         {
-            player.GetComponent<NavMeshAgent>().isStopped = true;
-            //Shoot bullet towards the player
+            //Shoot bullet towards the enemy
             player.GetComponent<NPCTankController>().ShootBullet();
         }
-        
     }
 }

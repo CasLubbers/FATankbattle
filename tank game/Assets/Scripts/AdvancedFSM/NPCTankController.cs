@@ -55,13 +55,14 @@ public class NPCTankController : AdvancedFSM
 
     public List<GameObject> getEnemies()
     {
-        GameObject[] tanks = GameObject.FindGameObjectsWithTag("Tank");
+        GameObject[] tanks = FindObjectsOfType<GameObject>();
         List<GameObject> enemies = new List<GameObject>();
         for (int i = 0; i < tanks.Length; i++)
         {
-            if (tanks[i].transform.Find("Team1") == null)
+            if (!tanks[i].CompareTag("Team1") && tanks[i].tag != "Untagged")
                 enemies.Add(tanks[i]);
         }
+        Debug.Log("enemy Tanks: "+enemies.Capacity);
         return enemies;
     }
 
@@ -100,6 +101,7 @@ public class NPCTankController : AdvancedFSM
         patrol.AddTransition(Transition.SawPlayer, FSMStateID.Chasing);
         patrol.AddTransition(Transition.NoHealth, FSMStateID.Dead);
         patrol.AddTransition(Transition.Colliding, FSMStateID.Evading);
+
 
         ChaseState chase = new ChaseState(waypoints);
         chase.AddTransition(Transition.LostPlayer, FSMStateID.Patrolling);
@@ -141,27 +143,18 @@ public class NPCTankController : AdvancedFSM
         if (collision.gameObject.tag == "Bullet")
         {
             health -= 25;
-            Debug.Log("Health:" + health);
             if (health <= 0)
             {
                 Debug.Log("Switch to Dead State");
                 SetTransition(Transition.NoHealth);
-                Explode();
+                Destroy(gameObject);
+            }else if (health <= 50)
+            {
+                Debug.Log("Switch to Flee state");
+                navAgent.enabled = true;
+                SetTransition(Transition.LowHealth);
             }
         }
-    }
-
-    protected void Explode()
-    {
-        float rndX = Random.Range(10.0f, 30.0f);
-        float rndZ = Random.Range(10.0f, 30.0f);
-        for (int i = 0; i < 3; i++)
-        {
-            GetComponent<Rigidbody>().AddExplosionForce(10000.0f, transform.position - new Vector3(rndX, 10.0f, rndZ), 40.0f, 10.0f);
-            GetComponent<Rigidbody>().velocity = transform.TransformDirection(new Vector3(rndX, 20.0f, rndZ));
-        }
-
-        Destroy(gameObject, 1.5f);
     }
 
     /// <summary>
@@ -171,7 +164,7 @@ public class NPCTankController : AdvancedFSM
     {
         if (elapsedTime >= shootRate)
         {
-            Instantiate(Bullet, bulletSpawnPoint.position, bulletSpawnPoint.rotation);
+            Instantiate(Bullet, transform.Find("Turret").Find("SpawnPoint").position, transform.Find("Turret").rotation);
             elapsedTime = 0.0f;
         }
     }

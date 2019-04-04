@@ -1,9 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class FleeState : FSMState
 {
+    private bool firstTime = true;
+
     public FleeState(Transform[] wp)
     {
         waypoints = wp;
@@ -14,38 +17,29 @@ public class FleeState : FSMState
 
     public override void Reason(Transform enemy, Transform player)
     {
-        //When the distance with player tank is far, transition to patrol state
-        float dist = Vector3.Distance(player.position, enemy.position);
-        if (dist >= 500.0f)
+        if (player.GetComponent<NavMeshAgent>().remainingDistance <= 5f)
         {
-            Debug.Log("Switch to Patrol State");
-            player.GetComponent<NPCTankController>().SetTransition(Transition.LostPlayer);
+            Debug.Log("Switch to Chase State");
+            player.GetComponent<NPCTankController>().SetTransition(Transition.SawPlayer);
+            return;
         }
     }
 
     public override void Act(Transform enemy, Transform player)
     {
-        Quaternion fleeRotation = Quaternion.LookRotation(enemy.position);
-        var targetRotation = Quaternion.Inverse(fleeRotation);
-        player.rotation = Quaternion.Slerp(player.rotation, targetRotation, Time.deltaTime * curRotSpeed);
-        Debug.Log(targetRotation.y);
-        Debug.Log(player.rotation.y);
-       
-        player.Translate(Vector3.forward * Time.deltaTime * curSpeed);
+        if (firstTime)
+        {
+            GameObject[] teamTanks = GameObject.FindGameObjectsWithTag("Team1");
+            Transform furthestTeamTank = teamTanks[0].transform;
+            for (int i = 1; i < teamTanks.Length; i++)
+            {
+                if (Vector3.Distance(teamTanks[i].transform.position, player.position) > Vector3.Distance(furthestTeamTank.position, player.position))
+                    furthestTeamTank = teamTanks[i].transform;
+            }
+            player.GetComponent<NavMeshAgent>().SetDestination(furthestTeamTank.transform.position);
+            firstTime = false;
+        }
 
-        // Debug.DrawRay(collisionRay.origin, collisionRay.direction * 200f, Color.blue);
-        //Vector3 pos = player.position;
-        //pos.y += 5f;
-
-        //Ray collisionRay = new Ray(pos, player.forward);
-
-        // Debug.DrawRay(collisionRay.origin, collisionRay.direction * 200f, Color.blue);
-
-        //RaycastHit hit;
-        //if (Physics.Raycast(collisionRay, out hit, 200f))
-        //{
-        //    Debug.Log("Switch to Evading State");
-        //    player.GetComponent<NPCTankController>().SetTransition(Transition.Colliding);
-        //}
+        player.rotation = Quaternion.LookRotation(player.GetComponent<NavMeshAgent>().velocity.normalized);
     }
 }

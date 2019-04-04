@@ -29,7 +29,7 @@ public class PatrolState : FSMState
     public float WanderRadius = 3;
     public float bound = 70;
     public float maxDistanceCohesion = 169.420f;
-    public float enemyVisability = 500f;
+    public float enemyVisability = 300f;
 
     static int teamPointIndex = 0;
     readonly float destMargin = 30.0f;
@@ -42,6 +42,7 @@ public class PatrolState : FSMState
 
     void cohesion(Transform player)
     {
+        teamTanks = getTeamTanks();
         if (teamTanks.Length == 0) return;
 
         Vector3 center = GetCenter(teamTanks);
@@ -67,12 +68,7 @@ public class PatrolState : FSMState
     }
 
     private GameObject[] getTeamTanks() {
-        GameObject[] teamTanks = GameObject.FindGameObjectsWithTag("Team1");
-
-        for (int i = 0; i < teamTanks.Length; i++) {
-            teamTanks[i] = teamTanks[i].transform.parent.gameObject;
-        }
-        return teamTanks;
+        return GameObject.FindGameObjectsWithTag("Team1") ;
     }
 
     private GameObject[] getTeamTanks(GameObject exclude) {
