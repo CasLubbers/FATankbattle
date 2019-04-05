@@ -26,10 +26,7 @@ public class EvadingState : FSMState
         pos.y = pos.y += 5f;
 
         Ray forwardRay = new Ray(pos, player.forward);
-        //Debug.DrawRay(pos, player.forward * 100, Color.red);
         RaycastHit hit;
-
-        //Debug.DrawRay(forwardRay.origin, forwardRay.direction * 700f, Color.green);
 
         if (!Physics.Raycast(forwardRay, out hit, 100) || (Physics.Raycast(forwardRay, out hit, 100) && hit.transform.gameObject.tag != "Untagged")) {
             player.GetComponent<NavMeshAgent>().isStopped = false;

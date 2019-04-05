@@ -1,9 +1,14 @@
 using UnityEngine;
 using System.Collections;
 using UnityEngine.AI;
+using System.Collections.Generic;
 
 public class ChaseState : FSMState
 {
+    public float attackDistance = 180f;
+    public float lostDistance = 300f;
+    public string teamTanksTag = "Team1";
+
     public ChaseState(Transform[] wp) 
     { 
         waypoints = wp;
@@ -15,55 +20,52 @@ public class ChaseState : FSMState
 
     public override void Reason(Transform enemy, Transform player)
     {
-        //Set the target position as the player position
-        destPos = player.position;
+        List<GameObject> enemies = player.GetComponent<NPCTankController>().getEnemies();
+        enemy = player.GetComponent<NPCTankController>().GetClosestEnemy(enemies);
 
-        //Check the distance with player tank
-        //When the distance is near, transition to attack state
-        float dist = Vector3.Distance(enemy.position, destPos);
-        //Debug.Log("dist:" + dist);
+        if (enemy != player)
+        {
 
-        Debug.Log("dist chasestate:" + dist);
-        if (dist <= 200.0f)
-        {
-            //player.GetComponent<NavMeshAgent>().destination = player.position;
-            Debug.Log("Switch to Attack state");
-            player.GetComponent<NPCTankController>().SetTransition(Transition.ReachPlayer);
-            return;
-        }
-        //Go back to patrol is it become too far
-        else if (dist >= 300.0f)
-        {
-            Debug.Log("Switch to Patrol state");
-            player.GetComponent<NPCTankController>().SetTransition(Transition.LostPlayer);
-            return;
+            //Check the distance with player tank
+            //When the distance is near, transition to attack state
+            float enemyDistance = Vector3.Distance(enemy.position, player.position);
+
+            if (enemyDistance <= attackDistance)
+            {
+                Debug.Log("Switch to Attack state");
+                player.GetComponent<NPCTankController>().SetTransition(Transition.ReachPlayer);
+                if (enemy != null)
+                    AttackState.target = enemy;
+                return;
+            }
+            //Go back to patrol is it become too far
+            else if (enemyDistance >= lostDistance)
+            {
+                Debug.Log("Switch to Patrol state");
+                player.GetComponent<NPCTankController>().SetTransition(Transition.LostPlayer);
+                return;
+            }
         }
     }
 
     public override void Act(Transform enemy, Transform player)
     {
-
-        UpdateDestination(enemy.transform.position, getTeamTanks());
+        List<GameObject> enemies = player.GetComponent<NPCTankController>().getEnemies();
+        enemy = player.GetComponent<NPCTankController>().GetClosestEnemy(enemies);
+        if (player != enemy)
+        {
+            UpdateDestination(enemy.transform.position, GameObject.FindGameObjectsWithTag(teamTanksTag));
+        }
         player.rotation = Quaternion.LookRotation(player.GetComponent<NavMeshAgent>().velocity.normalized);
-
-        //Rotate to the target point
-        //destPos = player.position;
-
-        //Quaternion targetRotation = Quaternion.LookRotation(destPos - npc.position);
-        //npc.rotation = Quaternion.Slerp(npc.rotation, targetRotation, Time.deltaTime * curRotSpeed);
-
-        //Go Forward
-        //npc.Translate(Vector3.forward * Time.deltaTime * curSpeed);
+        
     }
+
     void UpdateDestination(Vector3 point, GameObject[] tanks)
     {
         foreach (var tank in tanks)
-            tank.GetComponent<NavMeshAgent>().destination = point;
+            if (tank.GetComponent<NavMeshAgent>().enabled)
+            {
+                tank.GetComponent<NavMeshAgent>().destination = point;
+            }
     }
-
-    private GameObject[] getTeamTanks()
-    {
-        return GameObject.FindGameObjectsWithTag("Team1");
-    }
-
 }

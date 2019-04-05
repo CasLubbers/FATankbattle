@@ -10,11 +10,14 @@ public class NPCTankController : AdvancedFSM
     public int health;
     public UnityEngine.AI.NavMeshAgent navAgent;
     public Transform[] points;
-    
+    public int lowHealth;
+    public string teamTanksTag = "Team1";
+
     //Initialize the Finite state machine for the NPC tank
     protected override void Initialize()
     {
         health = 100;
+        lowHealth = 50;
 
         elapsedTime = 0.0f;
         shootRate = 2.0f;
@@ -57,7 +60,7 @@ public class NPCTankController : AdvancedFSM
         List<GameObject> enemies = new List<GameObject>();
         for (int i = 0; i < tanks.Length; i++)
         {
-            if (!tanks[i].CompareTag("Team1") && tanks[i].tag != "Untagged")
+            if (!tanks[i].CompareTag(teamTanksTag) && tanks[i].tag != "Untagged")
                 enemies.Add(tanks[i]);
         }
         return enemies;
@@ -116,7 +119,7 @@ public class NPCTankController : AdvancedFSM
 
         FleeState flee = new FleeState(waypoints);
         flee.AddTransition(Transition.NoHealth, FSMStateID.Dead);
-        flee.AddTransition(Transition.LostPlayer, FSMStateID.Patrolling);
+        flee.AddTransition(Transition.SawPlayer, FSMStateID.Chasing);
 
         EvadingState evade = new EvadingState(waypoints);
         evade.AddTransition(Transition.NoHealth, FSMStateID.Dead);
@@ -141,7 +144,7 @@ public class NPCTankController : AdvancedFSM
                 Debug.Log("Switch to Dead State");
                 SetTransition(Transition.NoHealth);
                 Destroy(gameObject);
-            } else if (health <= 50)
+            } else if (health <= lowHealth)
             {
                 Debug.Log("Switch to Flee state");
                 navAgent.enabled = true;

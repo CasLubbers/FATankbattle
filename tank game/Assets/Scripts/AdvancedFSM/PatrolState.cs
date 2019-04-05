@@ -31,6 +31,9 @@ public class PatrolState : FSMState
     public float maxDistanceCohesion = 169.420f;
     public float enemyVisability = 300f;
 
+    public string tanksTag = "Tank";
+    public string teamTanksTag = "Team1";
+
     static int teamPointIndex = 0;
     readonly float destMargin = 30.0f;
     GameObject[] teamTanks;
@@ -68,7 +71,7 @@ public class PatrolState : FSMState
     }
 
     private GameObject[] getTeamTanks() {
-        return GameObject.FindGameObjectsWithTag("Team1") ;
+        return GameObject.FindGameObjectsWithTag(teamTanksTag) ;
     }
 
     private GameObject[] getTeamTanks(GameObject exclude) {
@@ -124,7 +127,6 @@ public class PatrolState : FSMState
         }
 
         player.rotation = Quaternion.LookRotation(agent.velocity.normalized);
-        //player.rotation = Quaternion.Slerp(player.rotation, Quaternion.LookRotation(agent.velocity.normalized), curRotSpeed * Time.deltaTime);
     }
 
     float RandomBinomial()
@@ -139,11 +141,8 @@ public class PatrolState : FSMState
         
         if (player != enemy)
         {
-            //Debug.Log(enemy.name + " --- " + player.name);
-
             //Check the distance with player tank
             //When the distance is near, transition to chase state
-            //if (Vector3.Distance(enemy.position, player.position) <= 500.0f)
             if (Vector3.Distance(enemy.position, player.position) < enemyVisability)
             {
                 Debug.Log("Switch to Chase State");
@@ -154,14 +153,10 @@ public class PatrolState : FSMState
             pos.y += 5f;
 
             Ray collisionRay = new Ray(pos, player.forward);
-            //Debug.DrawRay(pos, player.forward * 100, Color.red);
-
-            //Debug.DrawRay(collisionRay.origin, collisionRay.direction * 100f, Color.green);
-
+            
             RaycastHit hit;
 
-            if (Physics.Raycast(collisionRay, out hit, 100) && hit.transform.gameObject.tag == "Tank") {
-                //if (Physics.SphereCast(pos, player.GetComponent<Renderer>().bounds.size.y / 2, player.forward, out hit, 100) && hit.transform.gameObject.tag == "Tank") {
+            if (Physics.Raycast(collisionRay, out hit, 100) && hit.transform.gameObject.tag == tanksTag) {
                 Debug.Log("Switch to Evading State");
                 player.GetComponent<NPCTankController>().SetTransition(Transition.Colliding);
             }
@@ -177,14 +172,23 @@ public class PatrolState : FSMState
         GameObject[] teamTanks = getTeamTanks();
         if (teamTanks.Length == 0) return;
 
-        teamPointIndex = Random.Range(0, points.Length);
-        
+        teamPointIndex = Random.Range(0, points.Length - 1);
+
         foreach (var teamTank in teamTanks)
-            teamTank.GetComponent<NavMeshAgent>().destination = points[teamPointIndex].position;
+            if (teamTank.GetComponent<NavMeshAgent>().enabled)
+            {
+                Debug.Log(points);
+                Debug.Log(teamPointIndex);
+                teamTank.GetComponent<NavMeshAgent>().destination = points[teamPointIndex].position;
+            }
     }
 
-    void UpdateDestination(Vector3 point, GameObject[] tanks) {
+    void UpdateDestination(Vector3 point, GameObject[] tanks)
+    {
         foreach (var tank in tanks)
-            tank.GetComponent<NavMeshAgent>().destination = point;
+            if (tank.GetComponent<NavMeshAgent>().enabled)
+            {
+                tank.GetComponent<NavMeshAgent>().destination = point;
+            }
     }
 }

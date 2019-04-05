@@ -6,6 +6,7 @@ using UnityEngine.AI;
 public class FleeState : FSMState
 {
     private bool firstTime = true;
+    public string teamTanksTag = "Team1";
 
     public FleeState(Transform[] wp)
     {
@@ -29,7 +30,7 @@ public class FleeState : FSMState
     {
         if (firstTime)
         {
-            GameObject[] teamTanks = GameObject.FindGameObjectsWithTag("Team1");
+            GameObject[] teamTanks = GameObject.FindGameObjectsWithTag(teamTanksTag);
             Transform furthestTeamTank = teamTanks[0].transform;
             for (int i = 1; i < teamTanks.Length; i++)
             {
