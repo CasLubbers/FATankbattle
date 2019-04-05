@@ -22,6 +22,8 @@ public class AttackState : FSMState
 
     public override void Reason(Transform enemy, Transform player)
     {
+        if (target == null)
+            target = enemy;
         agent = player.GetComponent<NavMeshAgent>();
         //Check the distance with the player tank
         float dist = Vector3.Distance(player.position, target.position);
@@ -48,7 +50,7 @@ public class AttackState : FSMState
         //Stop the tank from driving
             //player.GetComponent<Rigidbody>().velocity = Vector3.zero;
         agent.velocity = Vector3.zero;
-        agent.destination = player.transform.position;
+        //agent.destination = player.transform.position;
 
         //Always Turn the turret towards the enemy
         Transform turret = player.GetComponent<NPCTankController>().turret;
