@@ -11,7 +11,6 @@ public class NPCTankController : AdvancedFSM
     public UnityEngine.AI.NavMeshAgent navAgent;
     public Transform[] points;
     
-
     //Initialize the Finite state machine for the NPC tank
     protected override void Initialize()
     {
@@ -22,7 +21,7 @@ public class NPCTankController : AdvancedFSM
 
         //Get the target enemy(Player)
         List<GameObject> enemies = getEnemies();
-        Debug.Log(enemies);
+
         enemyTransform = GetClosestEnemy(enemies);
 
         //Get the turret of the tank
@@ -39,7 +38,6 @@ public class NPCTankController : AdvancedFSM
     {
         if(enemies.Capacity == 0)
         {
-            Debug.Log("ERROR: No Enemies found");
             return transform;
         }
         Transform closestEnemy = enemies[0].transform;
@@ -62,7 +60,6 @@ public class NPCTankController : AdvancedFSM
             if (!tanks[i].CompareTag("Team1") && tanks[i].tag != "Untagged")
                 enemies.Add(tanks[i]);
         }
-        Debug.Log("enemy Tanks: "+enemies.Capacity);
         return enemies;
     }
 
@@ -133,10 +130,6 @@ public class NPCTankController : AdvancedFSM
         AddFSMState(evade);
     }
 
-    /// <summary>
-    /// Check the collision with the bullet
-    /// </summary>
-    /// <param name="collision"></param>
     void OnCollisionEnter(Collision collision)
     {
         //Reduce health
@@ -148,7 +141,7 @@ public class NPCTankController : AdvancedFSM
                 Debug.Log("Switch to Dead State");
                 SetTransition(Transition.NoHealth);
                 Destroy(gameObject);
-            }else if (health <= 50)
+            } else if (health <= 50)
             {
                 Debug.Log("Switch to Flee state");
                 navAgent.enabled = true;
@@ -156,10 +149,7 @@ public class NPCTankController : AdvancedFSM
             }
         }
     }
-
-    /// <summary>
-    /// Shoot the bullet from the turret
-    /// </summary>
+    
     public void ShootBullet()
     {
         if (elapsedTime >= shootRate)
