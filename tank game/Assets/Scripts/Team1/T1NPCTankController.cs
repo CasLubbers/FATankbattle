@@ -4,7 +4,7 @@ using System;
 using Random = UnityEngine.Random;
 using System.Collections.Generic;
 
-public class T1NPCTankController : T1AdvancedFSM 
+public class T1NPCTankController : T1.T1AdvancedFSM 
 {
     public GameObject Bullet;
     public int health;
@@ -79,7 +79,7 @@ public class T1NPCTankController : T1AdvancedFSM
         CurrentState.Act(enemyTransform, transform);
     }
 
-    public void SetTransition(Transition t) 
+    public void SetTransition(T1.Transition t) 
     { 
         PerformTransition(t); 
     }
@@ -98,32 +98,32 @@ public class T1NPCTankController : T1AdvancedFSM
         }
 
         T1PatrolState patrol = new T1PatrolState(waypoints);
-        patrol.AddTransition(Transition.SawPlayer, FSMStateID.Chasing);
-        patrol.AddTransition(Transition.NoHealth, FSMStateID.Dead);
-        patrol.AddTransition(Transition.Colliding, FSMStateID.Evading);
+        patrol.AddTransition(T1.Transition.SawPlayer, T1.FSMStateID.Chasing);
+        patrol.AddTransition(T1.Transition.NoHealth, T1.FSMStateID.Dead);
+        patrol.AddTransition(T1.Transition.Colliding, T1.FSMStateID.Evading);
 
 
         T1ChaseState chase = new T1ChaseState(waypoints);
-        chase.AddTransition(Transition.LostPlayer, FSMStateID.Patrolling);
-        chase.AddTransition(Transition.ReachPlayer, FSMStateID.Attacking);
-        chase.AddTransition(Transition.NoHealth, FSMStateID.Dead);
+        chase.AddTransition(T1.Transition.LostPlayer, T1.FSMStateID.Patrolling);
+        chase.AddTransition(T1.Transition.ReachPlayer, T1.FSMStateID.Attacking);
+        chase.AddTransition(T1.Transition.NoHealth, T1.FSMStateID.Dead);
 
         T1AttackState attack = new T1AttackState(waypoints);
-        attack.AddTransition(Transition.LostPlayer, FSMStateID.Patrolling);
-        attack.AddTransition(Transition.SawPlayer, FSMStateID.Chasing);
-        attack.AddTransition(Transition.NoHealth, FSMStateID.Dead);
-        attack.AddTransition(Transition.LowHealth, FSMStateID.Flee);
+        attack.AddTransition(T1.Transition.LostPlayer, T1.FSMStateID.Patrolling);
+        attack.AddTransition(T1.Transition.SawPlayer, T1.FSMStateID.Chasing);
+        attack.AddTransition(T1.Transition.NoHealth, T1.FSMStateID.Dead);
+        attack.AddTransition(T1.Transition.LowHealth, T1.FSMStateID.Flee);
 
         T1DeadState dead = new T1DeadState();
-        dead.AddTransition(Transition.NoHealth, FSMStateID.Dead);
+        dead.AddTransition(T1.Transition.NoHealth, T1.FSMStateID.Dead);
 
         T1FleeState flee = new T1FleeState(waypoints);
-        flee.AddTransition(Transition.NoHealth, FSMStateID.Dead);
-        flee.AddTransition(Transition.SawPlayer, FSMStateID.Chasing);
+        flee.AddTransition(T1.Transition.NoHealth, T1.FSMStateID.Dead);
+        flee.AddTransition(T1.Transition.SawPlayer, T1.FSMStateID.Chasing);
 
         T1EvadingState evade = new T1EvadingState(waypoints);
-        evade.AddTransition(Transition.NoHealth, FSMStateID.Dead);
-        evade.AddTransition(Transition.LostPlayer, FSMStateID.Patrolling);
+        evade.AddTransition(T1.Transition.NoHealth, T1.FSMStateID.Dead);
+        evade.AddTransition(T1.Transition.LostPlayer, T1.FSMStateID.Patrolling);
 
         AddFSMState(patrol);
         AddFSMState(chase);
@@ -142,13 +142,13 @@ public class T1NPCTankController : T1AdvancedFSM
             if (health <= 0)
             {
                 Debug.Log("Switch to Dead State");
-                SetTransition(Transition.NoHealth);
+                SetTransition(T1.Transition.NoHealth);
                 Destroy(gameObject);
             } else if (health <= lowHealth)
             {
                 Debug.Log("Switch to Flee state");
                 navAgent.enabled = true;
-                SetTransition(Transition.LowHealth);
+                SetTransition(T1.Transition.LowHealth);
             }
         }
     }

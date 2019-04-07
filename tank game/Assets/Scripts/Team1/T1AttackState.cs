@@ -15,7 +15,7 @@ public class T1AttackState : T1FSMState
     public T1AttackState(Transform[] wp) 
     {
         waypoints = wp;
-        stateID = FSMStateID.Attacking;
+        stateID = T1.FSMStateID.Attacking;
         curRotSpeed = 2.0f;
         curSpeed = 100.0f;
     }
@@ -30,14 +30,14 @@ public class T1AttackState : T1FSMState
         if (dist >= attackDistance && dist < lostDistance)
         {
             Debug.Log("Switch to Chase State");
-            player.GetComponent<T1NPCTankController>().SetTransition(Transition.SawPlayer);
+            player.GetComponent<T1NPCTankController>().SetTransition(T1.Transition.SawPlayer);
             return;
         }
         //Transition to patrol is the tank become too far
         else if (dist >= lostDistance)
         {
             Debug.Log("Switch to Patrol State");
-            player.GetComponent<T1NPCTankController>().SetTransition(Transition.LostPlayer);
+            player.GetComponent<T1NPCTankController>().SetTransition(T1.Transition.LostPlayer);
             return;
         }
         

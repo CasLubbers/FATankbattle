@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using T1;
 
 /// <summary>
 /// This class is adapted and modified from the FSM implementation class available on UnifyCommunity website
@@ -74,13 +75,13 @@ public abstract class T1FSMState
     /// This method returns the new state the FSM should be if
     ///    this state receives a transition  
     /// </summary>
-    public FSMStateID GetOutputState(Transition trans)
+    public FSMStateID GetOutputState(T1.Transition trans)
     {
         // Check for NullTransition
-        if (trans == Transition.None)
+        if (trans == T1.Transition.None)
         {
             Debug.LogError("FSMState ERROR: NullTransition is not allowed");
-            return FSMStateID.None;
+            return T1.FSMStateID.None;
         }
 
         // Check if the map has this transition
@@ -90,7 +91,7 @@ public abstract class T1FSMState
         }
 
         Debug.LogError("FSMState ERROR: " + trans+ " Transition passed to the State was not on the list");
-        return FSMStateID.None;
+        return T1.FSMStateID.None;
     }
 
     /// <summary>

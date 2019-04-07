@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class SimpleFSM : FSM 
+public class SimpleFSM : T1FSM 
 {
     public enum FSMState
     {

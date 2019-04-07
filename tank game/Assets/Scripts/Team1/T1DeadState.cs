@@ -5,7 +5,7 @@ public class T1DeadState : T1FSMState
 {
     public T1DeadState() 
     {
-        stateID = FSMStateID.Dead;
+        stateID = T1.FSMStateID.Dead;
     }
 
     public override void Reason(Transform player, Transform npc)

@@ -12,7 +12,7 @@ public class T1ChaseState : T1FSMState
     public T1ChaseState(Transform[] wp) 
     { 
         waypoints = wp;
-        stateID = FSMStateID.Chasing;
+        stateID = T1.FSMStateID.Chasing;
 
         curRotSpeed = 2.0f;
         curSpeed = 100.0f;
@@ -33,7 +33,7 @@ public class T1ChaseState : T1FSMState
             if (enemyDistance <= attackDistance)
             {
                 Debug.Log("Switch to Attack state");
-                player.GetComponent<T1NPCTankController>().SetTransition(Transition.ReachPlayer);
+                player.GetComponent<T1NPCTankController>().SetTransition(T1.Transition.ReachPlayer);
                 if (enemy != null)
                     T1AttackState.target = enemy;
                 return;
@@ -42,7 +42,7 @@ public class T1ChaseState : T1FSMState
             else if (enemyDistance >= lostDistance)
             {
                 Debug.Log("Switch to Patrol state");
-                player.GetComponent<T1NPCTankController>().SetTransition(Transition.LostPlayer);
+                player.GetComponent<T1NPCTankController>().SetTransition(T1.Transition.LostPlayer);
                 return;
             }
         }

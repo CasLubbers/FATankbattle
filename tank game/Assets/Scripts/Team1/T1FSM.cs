@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class FSM : MonoBehaviour 
+public class T1FSM : MonoBehaviour 
 {
     //Player Transform
     protected Transform enemyTransform;

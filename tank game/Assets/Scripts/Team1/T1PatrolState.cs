@@ -12,7 +12,7 @@ public class T1PatrolState : T1FSMState
     public T1PatrolState(Transform[] wp)
     {
         waypoints = wp;
-        stateID = FSMStateID.Patrolling;
+        stateID = T1.FSMStateID.Patrolling;
 
         curRotSpeed = 2.0f;
         curSpeed = 100.0f;
@@ -146,7 +146,7 @@ public class T1PatrolState : T1FSMState
             if (Vector3.Distance(enemy.position, player.position) < enemyVisability)
             {
                 Debug.Log("Switch to Chase State");
-                player.GetComponent<T1NPCTankController>().SetTransition(Transition.SawPlayer);
+                player.GetComponent<T1NPCTankController>().SetTransition(T1.Transition.SawPlayer);
                 return;
             }
             Vector3 pos = player.position;
@@ -158,7 +158,7 @@ public class T1PatrolState : T1FSMState
 
             if (Physics.Raycast(collisionRay, out hit, 100) && hit.transform.gameObject.tag == tanksTag) {
                 Debug.Log("Switch to Evading State");
-                player.GetComponent<T1NPCTankController>().SetTransition(Transition.Colliding);
+                player.GetComponent<T1NPCTankController>().SetTransition(T1.Transition.Colliding);
             }
         }
     }

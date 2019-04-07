@@ -8,7 +8,7 @@ public class T1EvadingState : T1FSMState
     public T1EvadingState(Transform[] wp)
     {
         this.waypoints = wp;
-        stateID = FSMStateID.Evading;
+        stateID = T1.FSMStateID.Evading;
 
         curRotSpeed = 2.0f;
         curSpeed = 20.0f;
@@ -31,7 +31,7 @@ public class T1EvadingState : T1FSMState
         if (!Physics.Raycast(forwardRay, out hit, 100) || (Physics.Raycast(forwardRay, out hit, 100) && hit.transform.gameObject.tag != "Untagged")) {
             player.GetComponent<NavMeshAgent>().isStopped = false;
             Debug.Log("Switch to Patrol state");
-            player.GetComponent<T1NPCTankController>().SetTransition(Transition.LostPlayer);
+            player.GetComponent<T1NPCTankController>().SetTransition(T1.Transition.LostPlayer);
             return;
         }
     }

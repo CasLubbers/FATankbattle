@@ -10,135 +10,138 @@ using System.Collections.Generic;
 /// Please read the link to know more about CCA license http://creativecommons.org/licenses/by-sa/3.0/
 /// </summary>
 
-public enum Transition
+namespace T1
 {
-    None = 0,
-    SawPlayer,
-    ReachPlayer,
-    LostPlayer,
-    NoHealth,
-    LowHealth,
-    Colliding,
-}
-
-public enum FSMStateID
-{
-    None = 0,
-    Patrolling,
-    Chasing,
-    Attacking,
-    Dead,
-    Flee,
-    Evading,
-}
-
-public class T1AdvancedFSM : FSM 
-{
-    private List<T1FSMState> fsmStates;
-
-    //The fsmStates are not changing directly but updated by using transitions
-    private FSMStateID currentStateID;
-    public FSMStateID CurrentStateID { get { return currentStateID; } }
-
-    private T1FSMState currentState;
-    public T1FSMState CurrentState { get { return currentState; } }
-
-    public T1AdvancedFSM()
+    public enum Transition
     {
-        fsmStates = new List<T1FSMState>();
+        None = 0,
+        SawPlayer,
+        ReachPlayer,
+        LostPlayer,
+        NoHealth,
+        LowHealth,
+        Colliding,
     }
 
-    /// <summary>
-    /// Add New State into the list
-    /// </summary>
-    public void AddFSMState(T1FSMState fsmState)
+    public enum FSMStateID
     {
-        // Check for Null reference before deleting
-        if (fsmState == null)
+        None = 0,
+        Patrolling,
+        Chasing,
+        Attacking,
+        Dead,
+        Flee,
+        Evading,
+    }
+
+    public class T1AdvancedFSM : T1FSM
+    {
+        private List<T1FSMState> fsmStates;
+
+        //The fsmStates are not changing directly but updated by using transitions
+        private FSMStateID currentStateID;
+        public FSMStateID CurrentStateID { get { return currentStateID; } }
+
+        private T1FSMState currentState;
+        public T1FSMState CurrentState { get { return currentState; } }
+
+        public T1AdvancedFSM()
         {
-            Debug.LogError("FSM ERROR: Null reference is not allowed");
+            fsmStates = new List<T1FSMState>();
         }
 
-        // First State inserted is also the Initial state
-        //   the state the machine is in when the simulation begins
-        if (fsmStates.Count == 0)
+        /// <summary>
+        /// Add New State into the list
+        /// </summary>
+        public void AddFSMState(T1FSMState fsmState)
         {
+            // Check for Null reference before deleting
+            if (fsmState == null)
+            {
+                Debug.LogError("FSM ERROR: Null reference is not allowed");
+            }
+
+            // First State inserted is also the Initial state
+            //   the state the machine is in when the simulation begins
+            if (fsmStates.Count == 0)
+            {
+                fsmStates.Add(fsmState);
+                currentState = fsmState;
+                currentStateID = fsmState.ID;
+                return;
+            }
+
+            // Add the state to the List if it´s not inside it
+            foreach (T1FSMState state in fsmStates)
+            {
+                if (state.ID == fsmState.ID)
+                {
+                    Debug.LogError("FSM ERROR: Trying to add a state that was already inside the list");
+                    return;
+                }
+            }
+
+            //If no state in the current then add the state to the list
             fsmStates.Add(fsmState);
-            currentState = fsmState;
-            currentStateID = fsmState.ID;
-            return;
         }
 
-        // Add the state to the List if it´s not inside it
-        foreach (T1FSMState state in fsmStates)
+        /// <summary>
+        /// This method delete a state from the FSM List if it exists, 
+        ///   or prints an ERROR message if the state was not on the List.
+        /// </summary>
+        public void DeleteState(FSMStateID fsmState)
         {
-            if (state.ID == fsmState.ID)
+            // Check for NullState before deleting
+            if (fsmState == FSMStateID.None)
             {
-                Debug.LogError("FSM ERROR: Trying to add a state that was already inside the list");
+                Debug.LogError("FSM ERROR: bull id is not allowed");
                 return;
             }
-        }
 
-        //If no state in the current then add the state to the list
-        fsmStates.Add(fsmState);
-    }
-
-    /// <summary>
-    /// This method delete a state from the FSM List if it exists, 
-    ///   or prints an ERROR message if the state was not on the List.
-    /// </summary>
-    public void DeleteState(FSMStateID fsmState)
-    {
-        // Check for NullState before deleting
-        if (fsmState == FSMStateID.None)
-        {
-            Debug.LogError("FSM ERROR: bull id is not allowed");
-            return;
-        }
-
-        // Search the List and delete the state if it´s inside it
-        foreach (T1FSMState state in fsmStates)
-        {
-            if (state.ID == fsmState)
+            // Search the List and delete the state if it´s inside it
+            foreach (T1FSMState state in fsmStates)
             {
-                fsmStates.Remove(state);
+                if (state.ID == fsmState)
+                {
+                    fsmStates.Remove(state);
+                    return;
+                }
+            }
+            Debug.LogError("FSM ERROR: The state passed was not on the list. Impossible to delete it");
+        }
+
+        /// <summary>
+        /// This method tries to change the state the FSM is in based on
+        /// the current state and the transition passed. If current state
+        ///  doesn´t have a target state for the transition passed, 
+        /// an ERROR message is printed.
+        /// </summary>
+        public void PerformTransition(T1.Transition trans)
+        {
+            // Check for NullTransition before changing the current state
+            if (trans == T1.Transition.None)
+            {
+                Debug.LogError("FSM ERROR: Null transition is not allowed");
                 return;
             }
-        }
-        Debug.LogError("FSM ERROR: The state passed was not on the list. Impossible to delete it");
-    }
 
-    /// <summary>
-    /// This method tries to change the state the FSM is in based on
-    /// the current state and the transition passed. If current state
-    ///  doesn´t have a target state for the transition passed, 
-    /// an ERROR message is printed.
-    /// </summary>
-    public void PerformTransition(Transition trans)
-    {
-        // Check for NullTransition before changing the current state
-        if (trans == Transition.None)
-        {
-            Debug.LogError("FSM ERROR: Null transition is not allowed");
-            return;
-        }
-
-        // Check if the currentState has the transition passed as argument
-        FSMStateID id = currentState.GetOutputState(trans);
-        if (id == FSMStateID.None)
-        {
-            Debug.LogError("FSM ERROR: Current State does not have a target state for this transition");
-            return;
-        }
-
-        // Update the currentStateID and currentState		
-        currentStateID = id;
-        foreach (T1FSMState state in fsmStates)
-        {
-            if (state.ID == currentStateID)
+            // Check if the currentState has the transition passed as argument
+            T1.FSMStateID id = currentState.GetOutputState(trans);
+            if (id == T1.FSMStateID.None)
             {
-                currentState = state;
-                break;
+                Debug.LogError("FSM ERROR: Current State does not have a target state for this transition");
+                return;
+            }
+
+            // Update the currentStateID and currentState		
+            currentStateID = id;
+            foreach (T1FSMState state in fsmStates)
+            {
+                if (state.ID == currentStateID)
+                {
+                    currentState = state;
+                    break;
+                }
             }
         }
     }

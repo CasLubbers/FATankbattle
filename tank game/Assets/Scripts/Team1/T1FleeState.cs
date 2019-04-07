@@ -11,7 +11,7 @@ public class T1FleeState : T1FSMState
     public T1FleeState(Transform[] wp)
     {
         waypoints = wp;
-        stateID = FSMStateID.Flee;
+        stateID = T1.FSMStateID.Flee;
         curRotSpeed = 2.0f;
         curSpeed = 100.0f;
     }
@@ -21,7 +21,7 @@ public class T1FleeState : T1FSMState
         if (player.GetComponent<NavMeshAgent>().remainingDistance <= 5f)
         {
             Debug.Log("Switch to Chase State");
-            player.GetComponent<T1NPCTankController>().SetTransition(Transition.SawPlayer);
+            player.GetComponent<T1NPCTankController>().SetTransition(T1.Transition.SawPlayer);
             return;
         }
     }
